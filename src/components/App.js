@@ -9,6 +9,49 @@ import Main from './Main'
 
 class App extends Component {
 
+  async componentDidMount() {
+    await this.loadWeb3()
+    await this.loadBlockchainData()
+    await this.loadContract()
+  }
+
+  async loadWeb3() {
+    if (window.ethereum) {
+      window.web3 = new Web3(window.ethereum)
+      await window.ethereum.enable()
+    } else if (window.web3) {
+      window.web3 = new Web3(window.web3.currentProvider)
+    } else {
+      window.alert('Non-Ethereum browser detected. You should consider installing MetaMask!')
+    }
+  }
+
+  async loadBlockchainData() {
+    const accounts = await window.web3.eth.getAccounts()
+    this.setState({
+      account: accounts[0]
+    })
+  }
+
+  async loadContract() {
+    const networkId = await window.web3.eth.net.getId()
+    const networkData = Decentragram.networks[networkId]
+    if (networkData) {
+      this.loadContractData(networkData)
+    } else {
+      alert ('Smart contract not deployed to detected network')
+    }
+  }
+
+  async loadContractData(networkData) {
+    const abi = Decentragram.abi
+    const address = networkData.address
+    const token = new window.web3.eth.Contract(abi, address)
+    this.setState({ token })
+
+    
+  }
+
   constructor(props) {
     super(props)
     this.state = {
